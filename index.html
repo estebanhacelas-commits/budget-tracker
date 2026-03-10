@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSPARK — Budget Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #2e2e2e;
+    --accent: #c8f135;
+    --accent2: #7b5ea7;
+    --text: #f0f0f0;
+    --muted: #666;
+    --danger: #ff4d4d;
+    --warning: #ffb347;
+    --ok: #5dde8a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 40px 24px;
+  }
+
+  .container { max-width: 860px; margin: 0 auto; }
+
+  header {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    width: 40px; height: 40px;
+    background: var(--accent2);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 800; color: white;
+    flex-shrink: 0;
+  }
+
+  h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  h1 span { color: var(--accent); }
+
+  /* Project Setup */
+  .setup-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .form-group { display: flex; flex-direction: column; gap: 8px; }
+  .form-group label { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+  input, select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  /* Budget Summary */
+  .budget-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .budget-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .budget-card.highlight {
+    border-color: var(--accent);
+    background: #1a1f0d;
+  }
+
+  .budget-card .label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .budget-card .value {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -1px;
+  }
+
+  .budget-card.highlight .value { color: var(--accent); }
+
+  /* Progress bar */
+  .progress-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+  }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .progress-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 28px;
+    font-weight: 500;
+  }
+
+  .bar-wrap {
+    height: 12px;
+    background: var(--surface2);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.4s ease, background 0.3s;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .status-ok { background: #0d2018; color: var(--ok); border: 1px solid #1a4030; }
+  .status-warn { background: #241800; color: var(--warning); border: 1px solid #3d2800; }
+  .status-over { background: #1f0000; color: var(--danger); border: 1px solid #3d0000; }
+
+  /* Expense tracker */
+  .tracker-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+
+  .tracker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .add-row {
+    display: grid;
+    grid-template-columns: 1fr 160px 160px auto;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: end;
+  }
+
+  .btn {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+
+  .btn-accent {
+    background: var(--accent);
+    color: #0f0f0f;
+  }
+
+  .btn-accent:hover { background: #d4ff3d; transform: translateY(-1px); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .btn-ghost:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* Expense table */
+  table { width: 100%; border-collapse: collapse; }
+
+  th {
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    padding: 0 12px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 14px 12px;
+    font-size: 14px;
+    border-bottom: 1px solid #1e1e1e;
+    font-family: 'DM Mono', monospace;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  .category-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .empty-state .icon { font-size: 32px; margin-bottom: 8px; }
+
+  /* P&L */
+  .pl-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+  }
+
+  .pl-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid #1e1e1e;
+    font-size: 14px;
+  }
+
+  .pl-row:last-child { border-bottom: none; }
+  .pl-row .pl-label { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 13px; }
+  .pl-row .pl-val { font-family: 'DM Mono', monospace; font-weight: 500; }
+  .pl-row.total { font-weight: 700; font-size: 16px; }
+  .pl-row.total .pl-label { color: var(--text); }
+
+  .positive { color: var(--ok); }
+  .negative { color: var(--danger); }
+  .neutral { color: var(--text); }
+
+  @media (max-width: 600px) {
+    .form-row, .budget-grid, .add-row { grid-template-columns: 1fr; }
+    .budget-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo">SS</div>
+    <div>
+      <h1>SSPARK — <span>Budget Tracker</span></h1>
+    </div>
+  </header>
+
+  <!-- Project Setup -->
+  <div class="setup-card">
+    <div class="section-label">📋 Datos del proyecto</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nombre del proyecto</label>
+        <input type="text" id="projectName" placeholder="ej. Coaching Ejecutivo — Empresa X" oninput="recalc()">
+      </div>
+      <div class="form-group">
+        <label>Cliente</label>
+        <input type="text" id="clientName" placeholder="ej. Uber, NuBank..." oninput="recalc()">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Valor del SOW (MXN)</label>
+        <input type="number" id="sowValue" placeholder="0.00" oninput="recalc()" min="0">
+      </div>
+      <div class="form-group">
+        <label>% de budget interno (default 15%)</label>
+        <input type="number" id="budgetPct" value="15" oninput="recalc()" min="1" max="100">
+      </div>
+    </div>
+  </div>
+
+  <!-- Budget Summary -->
+  <div class="budget-grid">
+    <div class="budget-card highlight">
+      <div class="label">Budget Total</div>
+      <div class="value" id="budgetTotal">$0</div>
+    </div>
+    <div class="budget-card">
+      <div class="label">Gastado</div>
+      <div class="value" id="totalSpent">$0</div>
+    </div>
+    <div class="budget-card">
+      <div class="label">Disponible</div>
+      <div class="value" id="remaining">$0</div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-section">
+    <div class="progress-header">
+      <div>
+        <div class="section-label" style="margin-bottom:4px">Uso del budget</div>
+        <span id="statusPill" class="status-pill status-ok">● En control</span>
+      </div>
+      <div class="progress-pct" id="progressPct">0%</div>
+    </div>
+    <div class="bar-wrap">
+      <div class="bar-fill" id="progressBar" style="width:0%; background: var(--ok)"></div>
+    </div>
+  </div>
+
+  <!-- Expense Tracker -->
+  <div class="tracker-card">
+    <div class="tracker-header">
+      <div class="section-label" style="margin-bottom:0">💸 Gastos del proyecto</div>
+    </div>
+
+    <div class="add-row">
+      <div class="form-group">
+        <label>Concepto</label>
+        <input type="text" id="newDesc" placeholder="Descripción del gasto">
+      </div>
+      <div class="form-group">
+        <label>Categoría</label>
+        <select id="newCat">
+          <option value="Tiempo">Tiempo / Horas</option>
+          <option value="Viáticos">Viáticos</option>
+          <option value="Materiales">Materiales</option>
+          <option value="Subcontratación">Subcontratación</option>
+          <option value="Tech">Tech / Herramientas</option>
+          <option value="Otros">Otros</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Monto (MXN)</label>
+        <input type="number" id="newAmount" placeholder="0.00" min="0">
+      </div>
+      <div class="form-group">
+        <label>&nbsp;</label>
+        <button class="btn btn-accent" onclick="addExpense()">+ Agregar</button>
+      </div>
+    </div>
+
+    <div id="expenseTableWrap">
+      <div class="empty-state">
+        <div class="icon">📭</div>
+        Aún no hay gastos registrados
+      </div>
+    </div>
+  </div>
+
+  <!-- P&L -->
+  <div class="pl-section">
+    <div class="section-label">📊 P&L del Proyecto</div>
+    <div class="pl-row">
+      <span class="pl-label">Ingreso (SOW)</span>
+      <span class="pl-val neutral" id="plRevenue">$0</span>
+    </div>
+    <div class="pl-row">
+      <span class="pl-label">Gastos internos registrados</span>
+      <span class="pl-val" id="plCosts">$0</span>
+    </div>
+    <div class="pl-row total">
+      <span class="pl-label">Margen neto estimado</span>
+      <span class="pl-val" id="plMargin">$0</span>
+    </div>
+    <div class="pl-row">
+      <span class="pl-label">Margen %</span>
+      <span class="pl-val" id="plPct">—</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const CAT_COLORS = {
+    'Tiempo':         { bg: '#1a1030', color: '#b39ddb' },
+    'Viáticos':       { bg: '#0d1f0d', color: '#81c784' },
+    'Materiales':     { bg: '#1a1000', color: '#ffb74d' },
+    'Subcontratación':{ bg: '#1a0010', color: '#f48fb1' },
+    'Tech':           { bg: '#001a1a', color: '#4dd0e1' },
+    'Otros':          { bg: '#1a1a1a', color: '#aaa' },
+  };
+
+  let expenses = [];
+
+  function fmt(n) {
+    return '$' + Math.abs(n).toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
+  function recalc() {
+    const sow = parseFloat(document.getElementById('sowValue').value) || 0;
+    const pct = parseFloat(document.getElementById('budgetPct').value) || 15;
+    const budget = sow * (pct / 100);
+    const spent = expenses.reduce((a, e) => a + e.amount, 0);
+    const remaining = budget - spent;
+    const usePct = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0;
+
+    document.getElementById('budgetTotal').textContent = fmt(budget);
+    document.getElementById('totalSpent').textContent = fmt(spent);
+    document.getElementById('remaining').textContent = (remaining < 0 ? '-' : '') + fmt(remaining);
+    document.getElementById('progressPct').textContent = usePct.toFixed(1) + '%';
+
+    const bar = document.getElementById('progressBar');
+    bar.style.width = usePct + '%';
+
+    const pill = document.getElementById('statusPill');
+    if (usePct < 70) {
+      bar.style.background = 'var(--ok)';
+      pill.className = 'status-pill status-ok';
+      pill.textContent = '● En control';
+    } else if (usePct < 90) {
+      bar.style.background = 'var(--warning)';
+      pill.className = 'status-pill status-warn';
+      pill.textContent = '⚠ Revisar';
+    } else {
+      bar.style.background = 'var(--danger)';
+      pill.className = 'status-pill status-over';
+      pill.textContent = '✕ Budget comprometido';
+    }
+
+    // P&L
+    const margin = sow - spent;
+    const marginPct = sow > 0 ? (margin / sow * 100) : 0;
+    document.getElementById('plRevenue').textContent = fmt(sow);
+    document.getElementById('plCosts').textContent = '-' + fmt(spent);
+    const plm = document.getElementById('plMargin');
+    plm.textContent = (margin < 0 ? '-' : '') + fmt(margin);
+    plm.className = 'pl-val ' + (margin >= 0 ? 'positive' : 'negative');
+    const plp = document.getElementById('plPct');
+    plp.textContent = sow > 0 ? marginPct.toFixed(1) + '%' : '—';
+    plp.className = 'pl-val ' + (marginPct >= 0 ? 'positive' : 'negative');
+  }
+
+  function addExpense() {
+    const desc = document.getElementById('newDesc').value.trim();
+    const cat = document.getElementById('newCat').value;
+    const amount = parseFloat(document.getElementById('newAmount').value);
+    if (!desc || !amount || amount <= 0) {
+      document.getElementById('newDesc').focus();
+      return;
+    }
+    expenses.push({ id: Date.now(), desc, cat, amount });
+    document.getElementById('newDesc').value = '';
+    document.getElementById('newAmount').value = '';
+    renderTable();
+    recalc();
+  }
+
+  function removeExpense(id) {
+    expenses = expenses.filter(e => e.id !== id);
+    renderTable();
+    recalc();
+  }
+
+  function renderTable() {
+    const wrap = document.getElementById('expenseTableWrap');
+    if (expenses.length === 0) {
+      wrap.innerHTML = '<div class="empty-state"><div class="icon">📭</div>Aún no hay gastos registrados</div>';
+      return;
+    }
+    let html = '<table><thead><tr><th>Concepto</th><th>Categoría</th><th style="text-align:right">Monto</th><th></th></tr></thead><tbody>';
+    expenses.forEach(e => {
+      const c = CAT_COLORS[e.cat] || CAT_COLORS['Otros'];
+      html += `<tr>
+        <td>${e.desc}</td>
+        <td><span class="category-tag" style="background:${c.bg};color:${c.color}">${e.cat}</span></td>
+        <td style="text-align:right">${fmt(e.amount)}</td>
+        <td><button class="btn btn-ghost" onclick="removeExpense(${e.id})">✕</button></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+  }
+
+  recalc();
+</script>
+</body>
+</html>
