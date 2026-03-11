@@ -3,197 +3,118 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SSPARK — Budget Tracker</title>
+<title>Budget Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0f0f0f;
-    --surface: #1a1a1a;
-    --surface2: #242424;
-    --border: #2e2e2e;
-    --accent: #c8f135;
-    --accent2: #7b5ea7;
-    --text: #f0f0f0;
-    --muted: #666;
-    --danger: #ff4d4d;
-    --warning: #ffb347;
-    --ok: #5dde8a;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Syne', sans-serif;
-    min-height: 100vh;
-    padding: 40px 24px;
-  }
-
-  .container { max-width: 860px; margin: 0 auto; }
-
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 48px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .header-left { display: flex; align-items: center; gap: 16px; }
-
-  .btn-export {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    background: transparent;
-    border: 1px solid var(--accent);
-    border-radius: 8px;
-    color: var(--accent);
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .btn-export:hover { background: var(--accent); color: #0f0f0f; }
-
-  #pdf-report {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85);
-    z-index: 1000;
-    overflow-y: auto;
-    padding: 40px 20px;
-  }
-
-  .pdf-inner {
-    max-width: 700px;
-    margin: 0 auto;
-    background: #fff;
-    border-radius: 12px;
-    padding: 48px;
-    color: #111;
-    font-family: 'Syne', sans-serif;
-    position: relative;
-  }
-
-  .pdf-close {
-    position: absolute;
-    top: 16px; right: 16px;
-    background: #f0f0f0;
-    border: none;
-    border-radius: 6px;
-    width: 32px; height: 32px;
-    font-size: 16px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-  }
-
-  .pdf-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 2px solid #111; }
-  .pdf-logo { width: 36px; height: 36px; background: #7b5ea7; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 14px; }
-  .pdf-title { font-size: 22px; font-weight: 800; color: #111; margin-bottom: 4px; }
-  .pdf-subtitle { font-size: 12px; color: #666; font-family: 'DM Mono', monospace; }
-  .pdf-date { font-size: 11px; color: #999; font-family: 'DM Mono', monospace; text-align: right; }
-  .pdf-section { margin-bottom: 28px; }
-  .pdf-section-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #999; margin-bottom: 12px; font-family: 'DM Mono', monospace; }
-  .pdf-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .pdf-info-item { background: #f8f8f8; border-radius: 8px; padding: 14px; }
-  .pdf-info-label { font-size: 11px; color: #999; font-family: 'DM Mono', monospace; margin-bottom: 4px; }
-  .pdf-info-value { font-size: 15px; font-weight: 700; color: #111; }
-  .pdf-kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  .pdf-kpi { border-radius: 8px; padding: 16px; text-align: center; }
-  .pdf-kpi.budget { background: #f0f7e0; }
-  .pdf-kpi.spent { background: #fff3e0; }
-  .pdf-kpi.avail { background: #e8f5e9; }
-  .pdf-kpi-label { font-size: 10px; color: #999; font-family: 'DM Mono', monospace; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
-  .pdf-kpi-value { font-size: 22px; font-weight: 800; color: #111; }
-  .pdf-progress-wrap { height: 10px; background: #eee; border-radius: 99px; overflow: hidden; margin-bottom: 8px; }
-  .pdf-progress-bar { height: 100%; border-radius: 99px; }
-  .pdf-progress-label { display: flex; justify-content: space-between; font-size: 12px; color: #666; font-family: 'DM Mono', monospace; }
-  .pdf-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .pdf-table th { text-align: left; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #999; font-family: 'DM Mono', monospace; padding: 0 8px 10px; border-bottom: 1px solid #e0e0e0; }
-  .pdf-table td { padding: 10px 8px; border-bottom: 1px solid #f0f0f0; font-family: 'DM Mono', monospace; color: #333; }
-  .pdf-table tr:last-child td { border-bottom: none; }
-  .pdf-cat-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
-  .pdf-pl { border-top: 1px solid #e0e0e0; }
-  .pdf-pl-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; font-family: 'DM Mono', monospace; }
-  .pdf-pl-row:last-child { border-bottom: none; }
-  .pdf-pl-row.total { font-weight: 700; font-size: 15px; padding-top: 14px; border-top: 2px solid #111; }
-  .pdf-pl-label { color: #666; }
-  .pdf-pl-val { font-weight: 600; }
-  .pdf-positive { color: #2e7d32; }
-  .pdf-negative { color: #c62828; }
-  .pdf-footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #eee; text-align: center; font-size: 11px; color: #bbb; font-family: 'DM Mono', monospace; }
-  .pdf-print-btn { display: block; width: 100%; margin-top: 24px; padding: 14px; background: #7b5ea7; color: white; border: none; border-radius: 8px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; }
-  .pdf-print-btn:hover { background: #6a4e96; }
-  @media print { body > .container { display: none; } #pdf-report { display: block !important; position: static; background: white; padding: 0; } .pdf-inner { box-shadow: none; border-radius: 0; padding: 20px; } .pdf-close, .pdf-print-btn { display: none; } }
-  .logo { width: 40px; height: 40px; background: var(--accent2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; color: white; flex-shrink: 0; }
-  h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
-  h1 span { color: var(--accent); }
-  .setup-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 24px; }
-  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-  .form-group { display: flex; flex-direction: column; gap: 8px; }
-  .form-group label { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
-  input, select { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 14px; width: 100%; transition: border-color 0.2s; }
-  input:focus, select:focus { outline: none; border-color: var(--accent); }
-  .budget-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-  .budget-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-  .budget-card.highlight { border-color: var(--accent); background: #1a1f0d; }
-  .budget-card .label { font-size: 11px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; font-family: 'DM Mono', monospace; }
-  .budget-card .value { font-size: 26px; font-weight: 800; letter-spacing: -1px; }
-  .budget-card.highlight .value { color: var(--accent); }
-  .progress-section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px 28px; margin-bottom: 24px; }
-  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-  .progress-pct { font-family: 'DM Mono', monospace; font-size: 28px; font-weight: 500; }
-  .bar-wrap { height: 12px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease, background 0.3s; }
-  .status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; }
-  .status-ok { background: #0d2018; color: var(--ok); border: 1px solid #1a4030; }
-  .status-warn { background: #241800; color: var(--warning); border: 1px solid #3d2800; }
-  .status-over { background: #1f0000; color: var(--danger); border: 1px solid #3d0000; }
-  .tracker-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 24px; }
-  .tracker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-  .add-row { display: grid; grid-template-columns: 1fr 160px 160px auto; gap: 10px; margin-bottom: 20px; align-items: end; }
-  .btn { padding: 12px 18px; border: none; border-radius: 8px; cursor: pointer; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; transition: all 0.15s; }
-  .btn-accent { background: var(--accent); color: #0f0f0f; }
-  .btn-accent:hover { background: #d4ff3d; transform: translateY(-1px); }
-  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); font-size: 12px; padding: 6px 12px; }
-  .btn-ghost:hover { border-color: var(--danger); color: var(--danger); }
-  table { width: 100%; border-collapse: collapse; }
-  th { text-align: left; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); font-family: 'DM Mono', monospace; padding: 0 12px 12px; border-bottom: 1px solid var(--border); }
-  td { padding: 14px 12px; font-size: 14px; border-bottom: 1px solid #1e1e1e; font-family: 'DM Mono', monospace; }
-  tr:last-child td { border-bottom: none; }
-  .category-tag { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
-  .empty-state { text-align: center; padding: 40px; color: var(--muted); font-size: 13px; }
-  .empty-state .icon { font-size: 32px; margin-bottom: 8px; }
-  .pl-section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; }
-  .pl-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #1e1e1e; font-size: 14px; }
-  .pl-row:last-child { border-bottom: none; }
-  .pl-row .pl-label { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 13px; }
-  .pl-row .pl-val { font-family: 'DM Mono', monospace; font-weight: 500; }
-  .pl-row.total { font-weight: 700; font-size: 16px; }
-  .pl-row.total .pl-label { color: var(--text); }
-  .positive { color: var(--ok); }
-  .negative { color: var(--danger); }
-  .neutral { color: var(--text); }
-  @media (max-width: 600px) { .form-row, .budget-grid, .add-row { grid-template-columns: 1fr; } .budget-grid { grid-template-columns: 1fr 1fr; } }
-  .empresa-toggle { display: flex; gap: 10px; }
-  .empresa-btn { display: flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--surface2); border: 2px solid var(--border); border-radius: 10px; color: var(--muted); font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; }
-  .empresa-btn:hover { border-color: var(--accent); color: var(--text); }
-  .empresa-btn.active { border-color: var(--accent); color: var(--text); background: #1a1f0d; }
-  .empresa-currency { font-family: 'DM Mono', monospace; font-size: 11px; padding: 2px 7px; border-radius: 4px; background: var(--border); color: var(--muted); font-weight: 500; }
-  .empresa-btn.active .empresa-currency { background: var(--accent); color: #0f0f0f; }
-  .empresa-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .sspark-dot { background: #7b5ea7; }
-  .masema-dot { background: #2196f3; }
+  :root { --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#242424;--border:#2e2e2e;--accent:#c8f135;--accent2:#7b5ea7;--text:#f0f0f0;--muted:#666;--danger:#ff4d4d;--warning:#ffb347;--ok:#5dde8a; }
+  * { box-sizing:border-box;margin:0;padding:0; }
+  body { background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;padding:40px 24px; }
+  .container { max-width:860px;margin:0 auto; }
+  header { display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:48px;padding-bottom:24px;border-bottom:1px solid var(--border); }
+  .header-left { display:flex;align-items:center;gap:16px; }
+  .btn-export { display:flex;align-items:center;gap:8px;padding:10px 20px;background:transparent;border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.15s;white-space:nowrap; }
+  .btn-export:hover { background:var(--accent);color:#0f0f0f; }
+  .logo { width:40px;height:40px;background:var(--accent2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:white;flex-shrink:0;transition:background 0.2s; }
+  h1 { font-size:22px;font-weight:800;letter-spacing:-0.5px; }
+  h1 span { color:var(--accent); }
+  .empresa-toggle { display:flex;gap:10px; }
+  .empresa-btn { display:flex;align-items:center;gap:8px;padding:10px 18px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:all 0.2s;letter-spacing:0.5px; }
+  .empresa-btn:hover { border-color:var(--accent);color:var(--text); }
+  .empresa-btn.active { border-color:var(--accent);color:var(--text);background:#1a1f0d; }
+  .empresa-currency { font-family:'DM Mono',monospace;font-size:11px;padding:2px 7px;border-radius:4px;background:var(--border);color:var(--muted);font-weight:500; }
+  .empresa-btn.active .empresa-currency { background:var(--accent);color:#0f0f0f; }
+  .empresa-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
+  .sspark-dot { background:#7b5ea7; }
+  .masema-dot { background:#2196f3; }
+  .setup-card { background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:24px; }
+  .section-label { font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:20px; }
+  .form-row { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px; }
+  .form-group { display:flex;flex-direction:column;gap:8px; }
+  .form-group label { font-size:12px;color:var(--muted);font-family:'DM Mono',monospace; }
+  input,select { background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;width:100%;transition:border-color 0.2s; }
+  input:focus,select:focus { outline:none;border-color:var(--accent); }
+  .budget-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px; }
+  .budget-card { background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px; }
+  .budget-card.highlight { border-color:var(--accent);background:#1a1f0d; }
+  .budget-card .label { font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-family:'DM Mono',monospace; }
+  .budget-card .value { font-size:26px;font-weight:800;letter-spacing:-1px; }
+  .budget-card.highlight .value { color:var(--accent); }
+  .progress-section { background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 28px;margin-bottom:24px; }
+  .progress-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:16px; }
+  .progress-pct { font-family:'DM Mono',monospace;font-size:28px;font-weight:500; }
+  .bar-wrap { height:12px;background:var(--surface2);border-radius:99px;overflow:hidden; }
+  .bar-fill { height:100%;border-radius:99px;transition:width 0.4s ease,background 0.3s; }
+  .status-pill { display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700;letter-spacing:0.5px; }
+  .status-ok { background:#0d2018;color:var(--ok);border:1px solid #1a4030; }
+  .status-warn { background:#241800;color:var(--warning);border:1px solid #3d2800; }
+  .status-over { background:#1f0000;color:var(--danger);border:1px solid #3d0000; }
+  .tracker-card { background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:24px; }
+  .tracker-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:20px; }
+  .add-row { display:grid;grid-template-columns:1fr 160px 160px auto;gap:10px;margin-bottom:20px;align-items:end; }
+  .btn { padding:12px 18px;border:none;border-radius:8px;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;transition:all 0.15s; }
+  .btn-accent { background:var(--accent);color:#0f0f0f; }
+  .btn-accent:hover { background:#d4ff3d;transform:translateY(-1px); }
+  .btn-ghost { background:transparent;color:var(--muted);border:1px solid var(--border);font-size:12px;padding:6px 12px; }
+  .btn-ghost:hover { border-color:var(--danger);color:var(--danger); }
+  table { width:100%;border-collapse:collapse; }
+  th { text-align:left;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-family:'DM Mono',monospace;padding:0 12px 12px;border-bottom:1px solid var(--border); }
+  td { padding:14px 12px;font-size:14px;border-bottom:1px solid #1e1e1e;font-family:'DM Mono',monospace; }
+  tr:last-child td { border-bottom:none; }
+  .category-tag { display:inline-block;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:0.5px; }
+  .empty-state { text-align:center;padding:40px;color:var(--muted);font-size:13px; }
+  .empty-state .icon { font-size:32px;margin-bottom:8px; }
+  .pl-section { background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px; }
+  .pl-row { display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #1e1e1e;font-size:14px; }
+  .pl-row:last-child { border-bottom:none; }
+  .pl-row .pl-label { color:var(--muted);font-family:'DM Mono',monospace;font-size:13px; }
+  .pl-row .pl-val { font-family:'DM Mono',monospace;font-weight:500; }
+  .pl-row.total { font-weight:700;font-size:16px; }
+  .pl-row.total .pl-label { color:var(--text); }
+  .positive { color:var(--ok); }
+  .negative { color:var(--danger); }
+  .neutral { color:var(--text); }
+  #pdf-report { display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:1000;overflow-y:auto;padding:40px 20px; }
+  .pdf-inner { max-width:700px;margin:0 auto;background:#fff;border-radius:12px;padding:48px;color:#111;font-family:'Syne',sans-serif;position:relative; }
+  .pdf-close { position:absolute;top:16px;right:16px;background:#f0f0f0;border:none;border-radius:6px;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center; }
+  .pdf-header { display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:24px;border-bottom:2px solid #111; }
+  .pdf-logo { width:36px;height:36px;background:#7b5ea7;border-radius:6px;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:14px; }
+  .pdf-title { font-size:22px;font-weight:800;color:#111;margin-bottom:4px; }
+  .pdf-subtitle { font-size:12px;color:#666;font-family:'DM Mono',monospace; }
+  .pdf-date { font-size:11px;color:#999;font-family:'DM Mono',monospace;text-align:right; }
+  .pdf-section { margin-bottom:28px; }
+  .pdf-section-title { font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#999;margin-bottom:12px;font-family:'DM Mono',monospace; }
+  .pdf-info-grid { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+  .pdf-info-item { background:#f8f8f8;border-radius:8px;padding:14px; }
+  .pdf-info-label { font-size:11px;color:#999;font-family:'DM Mono',monospace;margin-bottom:4px; }
+  .pdf-info-value { font-size:15px;font-weight:700;color:#111; }
+  .pdf-kpi-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:12px; }
+  .pdf-kpi { border-radius:8px;padding:16px;text-align:center; }
+  .pdf-kpi.budget { background:#f0f7e0; }
+  .pdf-kpi.spent { background:#fff3e0; }
+  .pdf-kpi.avail { background:#e8f5e9; }
+  .pdf-kpi-label { font-size:10px;color:#999;font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px; }
+  .pdf-kpi-value { font-size:22px;font-weight:800;color:#111; }
+  .pdf-progress-wrap { height:10px;background:#eee;border-radius:99px;overflow:hidden;margin-bottom:8px; }
+  .pdf-progress-bar { height:100%;border-radius:99px; }
+  .pdf-progress-label { display:flex;justify-content:space-between;font-size:12px;color:#666;font-family:'DM Mono',monospace; }
+  .pdf-table { width:100%;border-collapse:collapse;font-size:13px; }
+  .pdf-table th { text-align:left;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#999;font-family:'DM Mono',monospace;padding:0 8px 10px;border-bottom:1px solid #e0e0e0; }
+  .pdf-table td { padding:10px 8px;border-bottom:1px solid #f0f0f0;font-family:'DM Mono',monospace;color:#333; }
+  .pdf-table tr:last-child td { border-bottom:none; }
+  .pdf-cat-tag { display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700; }
+  .pdf-pl { border-top:1px solid #e0e0e0; }
+  .pdf-pl-row { display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:13px;font-family:'DM Mono',monospace; }
+  .pdf-pl-row:last-child { border-bottom:none; }
+  .pdf-pl-row.total { font-weight:700;font-size:15px;padding-top:14px;border-top:2px solid #111; }
+  .pdf-pl-label { color:#666; }
+  .pdf-pl-val { font-weight:600; }
+  .pdf-positive { color:#2e7d32; }
+  .pdf-negative { color:#c62828; }
+  .pdf-footer { margin-top:32px;padding-top:16px;border-top:1px solid #eee;text-align:center;font-size:11px;color:#bbb;font-family:'DM Mono',monospace; }
+  .pdf-print-btn { display:block;width:100%;margin-top:24px;padding:14px;background:#7b5ea7;color:white;border:none;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer; }
+  .pdf-print-btn:hover { background:#6a4e96; }
+  @media print { body > .container { display:none; } #pdf-report { display:block !important;position:static;background:white;padding:0; } .pdf-inner { box-shadow:none;border-radius:0;padding:20px; } .pdf-close,.pdf-print-btn { display:none; } }
+  @media (max-width:600px) { .form-row,.budget-grid,.add-row { grid-template-columns:1fr; } .budget-grid { grid-template-columns:1fr 1fr; } }
 </style>
 </head>
 <body>
@@ -201,84 +122,94 @@
   <header>
     <div class="header-left">
       <div class="logo" id="headerLogo">SS</div>
-      <h1 id="headerTitle">SSPARK — <span>Budget Tracker</span></h1>
+      <h1 id="headerTitle">SSPARK &mdash; <span>Budget Tracker</span></h1>
     </div>
-    <button class="btn-export" onclick="showReport()">⬇ Exportar Reporte</button>
+    <button class="btn-export" onclick="showReport()">&#11123; Exportar Reporte</button>
   </header>
   <div id="pdf-report">
     <div class="pdf-inner">
-      <button class="pdf-close" onclick="closeReport()">✕</button>
+      <button class="pdf-close" onclick="closeReport()">&#10005;</button>
       <div class="pdf-header">
         <div>
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <div class="pdf-logo">SS</div>
-            <span style="font-size:13px;font-weight:700;color:#7b5ea7;letter-spacing:1px">SSPARK INNOVACIÓN HUMANA</span>
+            <div class="pdf-logo" id="rpt-logo">SS</div>
+            <span id="rpt-empresa-label" style="font-size:13px;font-weight:700;color:#7b5ea7;letter-spacing:1px">SSPARK INNOVACION HUMANA</span>
           </div>
-          <div class="pdf-title" id="rpt-title">—</div>
-          <div class="pdf-subtitle" id="rpt-client">—</div>
+          <div class="pdf-title" id="rpt-title">&mdash;</div>
+          <div class="pdf-subtitle" id="rpt-client">&mdash;</div>
         </div>
-        <div class="pdf-date" id="rpt-date">—</div>
+        <div class="pdf-date" id="rpt-date">&mdash;</div>
       </div>
       <div class="pdf-section">
         <div class="pdf-section-title">Resumen del proyecto</div>
         <div class="pdf-info-grid">
-          <div class="pdf-info-item"><div class="pdf-info-label">Valor del SOW</div><div class="pdf-info-value" id="rpt-sow">—</div></div>
-          <div class="pdf-info-item"><div class="pdf-info-label">% Budget interno</div><div class="pdf-info-value" id="rpt-pct">—</div></div>
+          <div class="pdf-info-item"><div class="pdf-info-label">Valor del SOW</div><div class="pdf-info-value" id="rpt-sow">&mdash;</div></div>
+          <div class="pdf-info-item"><div class="pdf-info-label">% Budget interno</div><div class="pdf-info-value" id="rpt-pct">&mdash;</div></div>
         </div>
       </div>
       <div class="pdf-section">
         <div class="pdf-section-title">Budget</div>
         <div class="pdf-kpi-grid">
-          <div class="pdf-kpi budget"><div class="pdf-kpi-label">Total</div><div class="pdf-kpi-value" id="rpt-budget">—</div></div>
-          <div class="pdf-kpi spent"><div class="pdf-kpi-label">Gastado</div><div class="pdf-kpi-value" id="rpt-spent">—</div></div>
-          <div class="pdf-kpi avail"><div class="pdf-kpi-label">Disponible</div><div class="pdf-kpi-value" id="rpt-avail">—</div></div>
+          <div class="pdf-kpi budget"><div class="pdf-kpi-label">Total</div><div class="pdf-kpi-value" id="rpt-budget">&mdash;</div></div>
+          <div class="pdf-kpi spent"><div class="pdf-kpi-label">Gastado</div><div class="pdf-kpi-value" id="rpt-spent">&mdash;</div></div>
+          <div class="pdf-kpi avail"><div class="pdf-kpi-label">Disponible</div><div class="pdf-kpi-value" id="rpt-avail">&mdash;</div></div>
         </div>
         <div style="margin-top:16px">
           <div class="pdf-progress-wrap"><div class="pdf-progress-bar" id="rpt-bar"></div></div>
-          <div class="pdf-progress-label"><span id="rpt-status">—</span><span id="rpt-usepct">—</span></div>
+          <div class="pdf-progress-label"><span id="rpt-status">&mdash;</span><span id="rpt-usepct">&mdash;</span></div>
         </div>
       </div>
       <div class="pdf-section">
         <div class="pdf-section-title">Detalle de gastos</div>
-        <div id="rpt-expenses-wrap">—</div>
+        <div id="rpt-expenses-wrap">&mdash;</div>
       </div>
       <div class="pdf-section">
-        <div class="pdf-section-title">P&L del Proyecto</div>
+        <div class="pdf-section-title">P&amp;L del Proyecto</div>
         <div class="pdf-pl">
-          <div class="pdf-pl-row"><span class="pdf-pl-label">Ingreso (SOW)</span><span class="pdf-pl-val" id="rpt-pl-rev">—</span></div>
-          <div class="pdf-pl-row"><span class="pdf-pl-label">Gastos internos</span><span class="pdf-pl-val" id="rpt-pl-costs">—</span></div>
-          <div class="pdf-pl-row total"><span class="pdf-pl-label">Margen neto</span><span class="pdf-pl-val" id="rpt-pl-margin">—</span></div>
-          <div class="pdf-pl-row"><span class="pdf-pl-label">Margen %</span><span class="pdf-pl-val" id="rpt-pl-pct">—</span></div>
+          <div class="pdf-pl-row"><span class="pdf-pl-label">Ingreso (SOW)</span><span class="pdf-pl-val" id="rpt-pl-rev">&mdash;</span></div>
+          <div class="pdf-pl-row"><span class="pdf-pl-label">Gastos internos</span><span class="pdf-pl-val" id="rpt-pl-costs">&mdash;</span></div>
+          <div class="pdf-pl-row total"><span class="pdf-pl-label">Margen neto</span><span class="pdf-pl-val" id="rpt-pl-margin">&mdash;</span></div>
+          <div class="pdf-pl-row"><span class="pdf-pl-label">Margen %</span><span class="pdf-pl-val" id="rpt-pl-pct">&mdash;</span></div>
         </div>
       </div>
-      <div class="pdf-footer">Generado por Budget Tracker · <span id="rpt-footer-date"></span></div>
-      <button class="pdf-print-btn" onclick="window.print()">🖨 Imprimir / Guardar como PDF</button>
+      <div class="pdf-footer">Generado por Budget Tracker &middot; <span id="rpt-footer-date"></span></div>
+      <button class="pdf-print-btn" onclick="window.print()">Imprimir / Guardar como PDF</button>
     </div>
   </div>
   <div class="setup-card">
-    <div class="section-label">📋 Datos del proyecto</div>
+    <div class="section-label">Datos del proyecto</div>
     <div class="form-row" style="margin-bottom:20px">
-      <div class="form-group" style="grid-column: 1 / -1">
+      <div class="form-group" style="grid-column:1 / -1">
         <label>Empresa</label>
         <div class="empresa-toggle">
           <button id="btnSSPARK" class="empresa-btn active" onclick="setEmpresa('SSPARK')">
-            <span class="empresa-dot sspark-dot"></span> SSPARK
-            <span class="empresa-currency">MXN</span>
+            <span class="empresa-dot sspark-dot"></span> SSPARK <span class="empresa-currency">MXN</span>
           </button>
           <button id="btnMASEMA" class="empresa-btn" onclick="setEmpresa('MASEMA')">
-            <span class="empresa-dot masema-dot"></span> MASEMA
-            <span class="empresa-currency">USD</span>
+            <span class="empresa-dot masema-dot"></span> MASEMA <span class="empresa-currency">USD</span>
           </button>
         </div>
       </div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Nombre del proyecto</label><input type="text" id="projectName" placeholder="ej. Coaching Ejecutivo — Empresa X" oninput="recalc()"></div>
-      <div class="form-group"><label>Cliente</label><input type="text" id="clientName" placeholder="ej. Uber, NuBank..." oninput="recalc()"></div>
+      <div class="form-group">
+        <label>Nombre del proyecto</label>
+        <input type="text" id="projectName" placeholder="ej. Coaching Ejecutivo" oninput="recalc()">
+      </div>
+      <div class="form-group">
+        <label>Cliente</label>
+        <input type="text" id="clientName" placeholder="ej. Uber, NuBank..." oninput="recalc()">
+      </div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label id="sowLabel">Valor del SOW (MXN)</label><input type="number" id="sowValue" placeholder="0.00" oninput="recalc()" min="0"></div>
-      <div class="form-group"><label>% de budget interno (default 15%)</label><input type="number" id="budgetPct" value="15" oninput="recalc()" min="1" max="100"></div>
+      <div class="form-group">
+        <label id="sowLabel">Valor del SOW (MXN)</label>
+        <input type="number" id="sowValue" placeholder="0.00" oninput="recalc()" min="0">
+      </div>
+      <div class="form-group">
+        <label>% de budget interno (default 15%)</label>
+        <input type="number" id="budgetPct" value="15" oninput="recalc()" min="1" max="100">
+      </div>
     </div>
   </div>
   <div class="budget-grid">
@@ -290,158 +221,53 @@
     <div class="progress-header">
       <div>
         <div class="section-label" style="margin-bottom:4px">Uso del budget</div>
-        <span id="statusPill" class="status-pill status-ok">● En control</span>
+        <span id="statusPill" class="status-pill status-ok">&#9679; En control</span>
       </div>
       <div class="progress-pct" id="progressPct">0%</div>
     </div>
-    <div class="bar-wrap"><div class="bar-fill" id="progressBar" style="width:0%; background: var(--ok)"></div></div>
+    <div class="bar-wrap"><div class="bar-fill" id="progressBar" style="width:0%;background:var(--ok)"></div></div>
   </div>
   <div class="tracker-card">
-    <div class="tracker-header"><div class="section-label" style="margin-bottom:0">💸 Gastos del proyecto</div></div>
+    <div class="tracker-header"><div class="section-label" style="margin-bottom:0">Gastos del proyecto</div></div>
     <div class="add-row">
-      <div class="form-group"><label>Concepto</label><input type="text" id="newDesc" placeholder="Descripción del gasto"></div>
-      <div class="form-group"><label>Categoría</label><select id="newCat"><option value="Tiempo">Tiempo / Horas</option><option value="Viáticos">Viáticos</option><option value="Materiales">Materiales</option><option value="Subcontratación">Subcontratación</option><option value="Tech">Tech / Herramientas</option><option value="Otros">Otros</option></select></div>
+      <div class="form-group"><label>Concepto</label><input type="text" id="newDesc" placeholder="Descripcion del gasto"></div>
+      <div class="form-group"><label>Categoria</label>
+        <select id="newCat">
+          <option value="Tiempo">Tiempo / Horas</option>
+          <option value="Viaticos">Viaticos</option>
+          <option value="Materiales">Materiales</option>
+          <option value="Subcontratacion">Subcontratacion</option>
+          <option value="Tech">Tech / Herramientas</option>
+          <option value="Otros">Otros</option>
+        </select>
+      </div>
       <div class="form-group"><label id="amountLabel">Monto (MXN)</label><input type="number" id="newAmount" placeholder="0.00" min="0"></div>
       <div class="form-group"><label>&nbsp;</label><button class="btn btn-accent" onclick="addExpense()">+ Agregar</button></div>
     </div>
-    <div id="expenseTableWrap"><div class="empty-state"><div class="icon">📭</div>Aún no hay gastos registrados</div></div>
+    <div id="expenseTableWrap"><div class="empty-state"><div class="icon">&#128205;</div>Aun no hay gastos registrados</div></div>
   </div>
   <div class="pl-section">
-    <div class="section-label">📊 P&L del Proyecto</div>
+    <div class="section-label">P&amp;L del Proyecto</div>
     <div class="pl-row"><span class="pl-label">Ingreso (SOW)</span><span class="pl-val neutral" id="plRevenue">$0</span></div>
     <div class="pl-row"><span class="pl-label">Gastos internos registrados</span><span class="pl-val" id="plCosts">$0</span></div>
     <div class="pl-row total"><span class="pl-label">Margen neto estimado</span><span class="pl-val" id="plMargin">$0</span></div>
-    <div class="pl-row"><span class="pl-label">Margen %</span><span class="pl-val" id="plPct">—</span></div>
+    <div class="pl-row"><span class="pl-label">Margen %</span><span class="pl-val" id="plPct">&mdash;</span></div>
   </div>
 </div>
 <script>
-  const CAT_COLORS = { 'Tiempo': { bg: '#1a1030', color: '#b39ddb' }, 'Viáticos': { bg: '#0d1f0d', color: '#81c784' }, 'Materiales': { bg: '#1a1000', color: '#ffb74d' }, 'Subcontratación': { bg: '#1a0010', color: '#f48fb1' }, 'Tech': { bg: '#001a1a', color: '#4dd0e1' }, 'Otros': { bg: '#1a1a1a', color: '#aaa' } };
-  let expenses = [];
-  let currentEmpresa = 'SSPARK';
-  const EMPRESA_CONFIG = {
-    SSPARK: { currency: 'MXN', symbol: '$', locale: 'es-MX', logo: 'SS', logoColor: '#7b5ea7', label: 'SSPARK INNOVACIÓN HUMANA' },
-    MASEMA: { currency: 'USD', symbol: '$', locale: 'en-US', logo: 'MA', logoColor: '#2196f3', label: 'MASEMA' }
-  };
-  function setEmpresa(empresa) {
-    currentEmpresa = empresa;
-    const cfg = EMPRESA_CONFIG[empresa];
-    document.getElementById('btnSSPARK').classList.toggle('active', empresa === 'SSPARK');
-    document.getElementById('btnMASEMA').classList.toggle('active', empresa === 'MASEMA');
-    const logo = document.getElementById('headerLogo');
-    logo.textContent = cfg.logo;
-    logo.style.background = cfg.logoColor;
-    document.getElementById('headerTitle').innerHTML = empresa + ' — <span>Budget Tracker</span>';
-    document.getElementById('sowLabel').textContent = 'Valor del SOW (' + cfg.currency + ')';
-    document.getElementById('amountLabel').textContent = 'Monto (' + cfg.currency + ')';
-    recalc();
-  }
-  function fmt(n) {
-    const cfg = EMPRESA_CONFIG[currentEmpresa];
-    const decimals = cfg.currency === 'USD' ? 2 : 0;
-    return cfg.symbol + Math.abs(n).toLocaleString(cfg.locale, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-  }
-  function recalc() {
-    const sow = parseFloat(document.getElementById('sowValue').value) || 0;
-    const pct = parseFloat(document.getElementById('budgetPct').value) || 15;
-    const budget = sow * (pct / 100);
-    const spent = expenses.reduce((a, e) => a + e.amount, 0);
-    const remaining = budget - spent;
-    const usePct = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0;
-    document.getElementById('budgetTotal').textContent = fmt(budget);
-    document.getElementById('totalSpent').textContent = fmt(spent);
-    document.getElementById('remaining').textContent = (remaining < 0 ? '-' : '') + fmt(remaining);
-    document.getElementById('progressPct').textContent = usePct.toFixed(1) + '%';
-    const bar = document.getElementById('progressBar');
-    bar.style.width = usePct + '%';
-    const pill = document.getElementById('statusPill');
-    if (usePct < 70) { bar.style.background = 'var(--ok)'; pill.className = 'status-pill status-ok'; pill.textContent = '● En control'; }
-    else if (usePct < 90) { bar.style.background = 'var(--warning)'; pill.className = 'status-pill status-warn'; pill.textContent = '⚠ Revisar'; }
-    else { bar.style.background = 'var(--danger)'; pill.className = 'status-pill status-over'; pill.textContent = '✕ Budget comprometido'; }
-    const margin = sow - spent;
-    const marginPct = sow > 0 ? (margin / sow * 100) : 0;
-    document.getElementById('plRevenue').textContent = fmt(sow);
-    document.getElementById('plCosts').textContent = '-' + fmt(spent);
-    const plm = document.getElementById('plMargin');
-    plm.textContent = (margin < 0 ? '-' : '') + fmt(margin);
-    plm.className = 'pl-val ' + (margin >= 0 ? 'positive' : 'negative');
-    const plp = document.getElementById('plPct');
-    plp.textContent = sow > 0 ? marginPct.toFixed(1) + '%' : '—';
-    plp.className = 'pl-val ' + (marginPct >= 0 ? 'positive' : 'negative');
-  }
-  function addExpense() {
-    const desc = document.getElementById('newDesc').value.trim();
-    const cat = document.getElementById('newCat').value;
-    const amount = parseFloat(document.getElementById('newAmount').value);
-    if (!desc || !amount || amount <= 0) { document.getElementById('newDesc').focus(); return; }
-    expenses.push({ id: Date.now(), desc, cat, amount });
-    document.getElementById('newDesc').value = '';
-    document.getElementById('newAmount').value = '';
-    renderTable(); recalc();
-  }
-  function removeExpense(id) { expenses = expenses.filter(e => e.id !== id); renderTable(); recalc(); }
-  function renderTable() {
-    const wrap = document.getElementById('expenseTableWrap');
-    if (expenses.length === 0) { wrap.innerHTML = '<div class="empty-state"><div class="icon">📭</div>Aún no hay gastos registrados</div>'; return; }
-    let html = '<table><thead><tr><th>Concepto</th><th>Categoría</th><th style="text-align:right">Monto</th><th></th></tr></thead><tbody>';
-    expenses.forEach(e => { const c = CAT_COLORS[e.cat] || CAT_COLORS['Otros']; html += '<tr><td>' + e.desc + '</td><td><span class="category-tag" style="background:' + c.bg + ';color:' + c.color + '">' + e.cat + '</span></td><td style="text-align:right">' + fmt(e.amount) + '</td><td><button class="btn btn-ghost" onclick="removeExpense(' + e.id + ')">✕</button></td></tr>'; });
-    html += '</tbody></table>';
-    wrap.innerHTML = html;
-  }
+  const CAT_COLORS={'Tiempo':{bg:'#1a1030',color:'#b39ddb'},'Viaticos':{bg:'#0d1f0d',color:'#81c784'},'Materiales':{bg:'#1a1000',color:'#ffb74d'},'Subcontratacion':{bg:'#1a0010',color:'#f48fb1'},'Tech':{bg:'#001a1a',color:'#4dd0e1'},'Otros':{bg:'#1a1a1a',color:'#aaa'}};
+  const CAT_PDF_COLORS={'Tiempo':{bg:'#ede7f6',color:'#4527a0'},'Viaticos':{bg:'#e8f5e9',color:'#1b5e20'},'Materiales':{bg:'#fff3e0',color:'#e65100'},'Subcontratacion':{bg:'#fce4ec',color:'#880e4f'},'Tech':{bg:'#e0f7fa',color:'#006064'},'Otros':{bg:'#f5f5f5',color:'#424242'}};
+  const EMPRESA_CONFIG={SSPARK:{currency:'MXN',symbol:'$',locale:'es-MX',decimals:0,logo:'SS',logoColor:'#7b5ea7',label:'SSPARK INNOVACION HUMANA'},MASEMA:{currency:'USD',symbol:'$',locale:'en-US',decimals:2,logo:'MA',logoColor:'#2196f3',label:'MASEMA'}};
+  let expenses=[],currentEmpresa='SSPARK';
+  function setEmpresa(e){currentEmpresa=e;const c=EMPRESA_CONFIG[e];document.getElementById('btnSSPARK').classList.toggle('active',e==='SSPARK');document.getElementById('btnMASEMA').classList.toggle('active',e==='MASEMA');const l=document.getElementById('headerLogo');l.textContent=c.logo;l.style.background=c.logoColor;document.getElementById('headerTitle').innerHTML=e+' &mdash; <span>Budget Tracker</span>';document.getElementById('sowLabel').textContent='Valor del SOW ('+c.currency+')';document.getElementById('amountLabel').textContent='Monto ('+c.currency+')';expenses=[];renderTable();recalc();}
+  function fmt(n){const c=EMPRESA_CONFIG[currentEmpresa];return c.symbol+Math.abs(n).toLocaleString(c.locale,{minimumFractionDigits:c.decimals,maximumFractionDigits:c.decimals});}
+  function recalc(){const sow=parseFloat(document.getElementById('sowValue').value)||0;const pct=parseFloat(document.getElementById('budgetPct').value)||15;const budget=sow*(pct/100);const spent=expenses.reduce((a,e)=>a+e.amount,0);const remaining=budget-spent;const usePct=budget>0?Math.min((spent/budget)*100,100):0;document.getElementById('budgetTotal').textContent=fmt(budget);document.getElementById('totalSpent').textContent=fmt(spent);document.getElementById('remaining').textContent=(remaining<0?'-':'')+fmt(remaining);document.getElementById('progressPct').textContent=usePct.toFixed(1)+'%';const bar=document.getElementById('progressBar');bar.style.width=usePct+'%';const pill=document.getElementById('statusPill');if(usePct<70){bar.style.background='var(--ok)';pill.className='status-pill status-ok';pill.textContent='● En control';}else if(usePct<90){bar.style.background='var(--warning)';pill.className='status-pill status-warn';pill.textContent='⚠ Revisar';}else{bar.style.background='var(--danger)';pill.className='status-pill status-over';pill.textContent='✕ Budget comprometido';}const margin=sow-spent;const marginPct=sow>0?(margin/sow*100):0;document.getElementById('plRevenue').textContent=fmt(sow);document.getElementById('plCosts').textContent='-'+fmt(spent);const plm=document.getElementById('plMargin');plm.textContent=(margin<0?'-':'')+fmt(margin);plm.className='pl-val '+(margin>=0?'positive':'negative');const plp=document.getElementById('plPct');plp.textContent=sow>0?marginPct.toFixed(1)+'%':'—';plp.className='pl-val '+(marginPct>=0?'positive':'negative');}
+  function addExpense(){const desc=document.getElementById('newDesc').value.trim();const cat=document.getElementById('newCat').value;const amount=parseFloat(document.getElementById('newAmount').value);if(!desc||!amount||amount<=0){document.getElementById('newDesc').focus();return;}expenses.push({id:Date.now(),desc,cat,amount});document.getElementById('newDesc').value='';document.getElementById('newAmount').value='';renderTable();recalc();}
+  function removeExpense(id){expenses=expenses.filter(e=>e.id!==id);renderTable();recalc();}
+  function renderTable(){const wrap=document.getElementById('expenseTableWrap');if(expenses.length===0){wrap.innerHTML='<div class="empty-state"><div class="icon">📫</div>Aun no hay gastos registrados</div>';return;}let html='<table><thead><tr><th>Concepto</th><th>Categoria</th><th style="text-align:right">Monto</th><th></th></tr></thead><tbody>';expenses.forEach(e=>{const c=CAT_COLORS[e.cat]||CAT_COLORS['Otros'];html+='<tr><td>'+e.desc+'</td><td><span class="category-tag" style="background:'+c.bg+';color:'+c.color+'">'+e.cat+'</span></td><td style="text-align:right">'+fmt(e.amount)+'</td><td><button class="btn btn-ghost" onclick="removeExpense('+e.id+')">✕</button></td></tr>';});html+='</tbody></table>';wrap.innerHTML=html;}
+  function showReport(){const cfg=EMPRESA_CONFIG[currentEmpresa];const sow=parseFloat(document.getElementById('sowValue').value)||0;const pct=parseFloat(document.getElementById('budgetPct').value)||15;const name=document.getElementById('projectName').value||'Proyecto sin nombre';const client=document.getElementById('clientName').value||'—';const budget=sow*(pct/100);const spent=expenses.reduce((a,e)=>a+e.amount,0);const remaining=budget-spent;const usePct=budget>0?Math.min((spent/budget)*100,100):0;const margin=sow-spent;const marginPct=sow>0?(margin/sow*100):0;const now=new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'});const rl=document.getElementById('rpt-logo');rl.textContent=cfg.logo;rl.style.background=cfg.logoColor;const re=document.getElementById('rpt-empresa-label');re.textContent=cfg.label;re.style.color=cfg.logoColor;document.getElementById('rpt-title').textContent=name;document.getElementById('rpt-client').textContent='Cliente: '+client;document.getElementById('rpt-date').textContent=now;document.getElementById('rpt-footer-date').textContent=now;document.getElementById('rpt-sow').textContent=fmt(sow)+' '+cfg.currency;document.getElementById('rpt-pct').textContent=pct+'%';document.getElementById('rpt-budget').textContent=fmt(budget);document.getElementById('rpt-spent').textContent=fmt(spent);document.getElementById('rpt-avail').textContent=(remaining<0?'-':'')+fmt(remaining);document.getElementById('rpt-usepct').textContent=usePct.toFixed(1)+'%';const bar=document.getElementById('rpt-bar');bar.style.width=usePct+'%';bar.style.background=usePct<70?'#4caf50':usePct<90?'#ff9800':'#f44336';const st=document.getElementById('rpt-status');st.textContent=usePct<70?'● En control':usePct<90?'⚠ Revisar':'✕ Budget comprometido';st.style.color=usePct<70?'#2e7d32':usePct<90?'#e65100':'#c62828';const wrap=document.getElementById('rpt-expenses-wrap');if(expenses.length===0){wrap.innerHTML='<p style="color:#999;font-size:13px;font-family:DM Mono,monospace">Sin gastos registrados</p>';}else{let html='<table class="pdf-table"><thead><tr><th>Concepto</th><th>Categoria</th><th style="text-align:right">Monto ('+cfg.currency+')</th></tr></thead><tbody>';expenses.forEach(e=>{const c=CAT_PDF_COLORS[e.cat]||CAT_PDF_COLORS['Otros'];html+='<tr><td>'+e.desc+'</td><td><span class="pdf-cat-tag" style="background:'+c.bg+';color:'+c.color+'">'+e.cat+'</span></td><td style="text-align:right">'+fmt(e.amount)+'</td></tr>';});html+='</tbody></table>';wrap.innerHTML=html;}document.getElementById('rpt-pl-rev').textContent=fmt(sow);document.getElementById('rpt-pl-costs').textContent='-'+fmt(spent);const pm=document.getElementById('rpt-pl-margin');pm.textContent=(margin<0?'-':'')+fmt(margin);pm.className='pdf-pl-val '+(margin>=0?'pdf-positive':'pdf-negative');const pp=document.getElementById('rpt-pl-pct');pp.textContent=sow>0?marginPct.toFixed(1)+'%':'—';pp.className='pdf-pl-val '+(marginPct>=0?'pdf-positive':'pdf-negative');document.getElementById('pdf-report').style.display='block';document.body.style.overflow='hidden';}
+  function closeReport(){document.getElementById('pdf-report').style.display='none';document.body.style.overflow='';}
   recalc();
-  const CAT_PDF_COLORS = { 'Tiempo': { bg: '#ede7f6', color: '#4527a0' }, 'Viáticos': { bg: '#e8f5e9', color: '#1b5e20' }, 'Materiales': { bg: '#fff3e0', color: '#e65100' }, 'Subcontratación': { bg: '#fce4ec', color: '#880e4f' }, 'Tech': { bg: '#e0f7fa', color: '#006064' }, 'Otros': { bg: '#f5f5f5', color: '#424242' } };
-  function showReport() {
-    const sow = parseFloat(document.getElementById('sowValue').value) || 0;
-    const pct = parseFloat(document.getElementById('budgetPct').value) || 15;
-    const name = document.getElementById('projectName').value || 'Proyecto sin nombre';
-    const client = document.getElementById('clientName').value || '—';
-    const budget = sow * (pct / 100);
-    const spent = expenses.reduce((a, e) => a + e.amount, 0);
-    const remaining = budget - spent;
-    const usePct = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0;
-    const margin = sow - spent;
-    const marginPct = sow > 0 ? (margin / sow * 100) : 0;
-    const now = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
-    const cfg = EMPRESA_CONFIG[currentEmpresa];
-    document.querySelector('.pdf-logo').textContent = cfg.logo;
-    document.querySelector('.pdf-logo').style.background = cfg.logoColor;
-    document.querySelector('.pdf-logo + span').textContent = cfg.label;
-    document.querySelector('.pdf-logo + span').style.color = cfg.logoColor;
-    document.getElementById('rpt-title').textContent = name;
-    document.getElementById('rpt-client').textContent = 'Cliente: ' + client;
-    document.getElementById('rpt-date').textContent = now;
-    document.getElementById('rpt-footer-date').textContent = now;
-    document.getElementById('rpt-sow').textContent = fmt(sow) + ' ' + cfg.currency;
-    document.getElementById('rpt-pct').textContent = pct + '%';
-    document.getElementById('rpt-budget').textContent = fmt(budget);
-    document.getElementById('rpt-spent').textContent = fmt(spent);
-    document.getElementById('rpt-avail').textContent = (remaining < 0 ? '-' : '') + fmt(remaining);
-    document.getElementById('rpt-usepct').textContent = usePct.toFixed(1) + '%';
-    const bar = document.getElementById('rpt-bar');
-    bar.style.width = usePct + '%';
-    bar.style.background = usePct < 70 ? '#4caf50' : usePct < 90 ? '#ff9800' : '#f44336';
-    const statusEl = document.getElementById('rpt-status');
-    statusEl.textContent = usePct < 70 ? '● En control' : usePct < 90 ? '⚠ Revisar' : '✕ Budget comprometido';
-    statusEl.style.color = usePct < 70 ? '#2e7d32' : usePct < 90 ? '#e65100' : '#c62828';
-    const wrap = document.getElementById('rpt-expenses-wrap');
-    if (expenses.length === 0) { wrap.innerHTML = '<p style="color:#999;font-size:13px;font-family:DM Mono,monospace">Sin gastos registrados</p>'; }
-    else {
-      let html = '<table class="pdf-table"><thead><tr><th>Concepto</th><th>Categoría</th><th style="text-align:right">Monto (' + cfg.currency + ')</th></tr></thead><tbody>';
-      expenses.forEach(e => { const c = CAT_PDF_COLORS[e.cat] || CAT_PDF_COLORS['Otros']; html += '<tr><td>' + e.desc + '</td><td><span class="pdf-cat-tag" style="background:' + c.bg + ';color:' + c.color + '">' + e.cat + '</span></td><td style="text-align:right">' + fmt(e.amount) + '</td></tr>'; });
-      html += '</tbody></table>';
-      wrap.innerHTML = html;
-    }
-    document.getElementById('rpt-pl-rev').textContent = fmt(sow);
-    document.getElementById('rpt-pl-costs').textContent = '-' + fmt(spent);
-    const pm = document.getElementById('rpt-pl-margin');
-    pm.textContent = (margin < 0 ? '-' : '') + fmt(margin);
-    pm.className = 'pdf-pl-val ' + (margin >= 0 ? 'pdf-positive' : 'pdf-negative');
-    const pp = document.getElementById('rpt-pl-pct');
-    pp.textContent = sow > 0 ? marginPct.toFixed(1) + '%' : '—';
-    pp.className = 'pdf-pl-val ' + (marginPct >= 0 ? 'pdf-positive' : 'pdf-negative');
-    document.getElementById('pdf-report').style.display = 'block';
-    document.body.style.overflow = 'hidden';
-  }
-  function closeReport() { document.getElementById('pdf-report').style.display = 'none'; document.body.style.overflow = ''; }
 </script>
 </body>
 </html>
